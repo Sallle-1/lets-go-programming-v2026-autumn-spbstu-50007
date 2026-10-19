@@ -2,68 +2,87 @@ package main
 
 import "fmt"
 
-func getTemperature(operator string, temperature int, minTemperature *int, maxTemperature *int) int {
-	switch operator {
+var errOp = fmt.Errorf("operator must be %q or %q", ">=", "<=")
+
+func getTemperature(oper string, temp, minT, maxT int) (int, int, int, error) {
+	switch oper {
 	case ">=":
-		if temperature > *minTemperature {
-			*minTemperature = temperature
+		if temp > minT {
+			minT = temp
 		}
 	case "<=":
-		if temperature < *maxTemperature {
-			*maxTemperature = temperature
+		if temp < maxT {
+			maxT = temp
 		}
+	default:
+		return minT, maxT, 0, fmt.Errorf("%w; received %q", errOp, oper)
 	}
 
-	if *minTemperature > *maxTemperature {
-		return -1
+	if minT > maxT {
+		return minT, maxT, -1, nil
 	}
 
-	return *minTemperature
+	return minT, maxT, minT, nil
 }
 
 func main() {
-	var departments int
+	var deps int
 
-	_, err := fmt.Scan(&departments)
-	if err != nil || departments < 1 || departments > 1000 {
+	_, err := fmt.Scan(&deps)
+	if err != nil {
+		fmt.Printf("reading departments count: %s\n", err.Error())
+
+		return
+	}
+
+	if deps < 1 || deps > 1000 {
 		fmt.Println("Invalid number of departments")
 
 		return
 	}
 
-	for range departments {
-		var employees int
+	for range deps {
+		var emps int
 
-		_, err = fmt.Scan(&employees)
-		if err != nil || employees < 1 || employees > 1000 {
+		_, err = fmt.Scan(&emps)
+		if err != nil {
+			fmt.Printf("reading employees count: %s\n", err.Error())
+
+			return
+		}
+
+		if emps < 1 || emps > 1000 {
 			fmt.Println("Invalid number of employees")
 
 			return
 		}
 
-		minTemperature := 15
-		maxTemperature := 30
+		minT := 15
+		maxT := 30
 
-		for range employees {
-			var operator string
+		for range emps {
+			var oper string
 
-			var temperature int
+			var temp int
 
-			_, err = fmt.Scan(&operator, &temperature)
+			_, err = fmt.Scan(&oper, &temp)
 			if err != nil {
-				fmt.Println("Invalid temperature requirement")
+				fmt.Printf("reading temperature requirement: %s\n", err.Error())
 
 				return
 			}
 
-			if operator != ">=" && operator != "<=" {
-				fmt.Println("Invalid operator")
+			newMin, newMax, res, err := getTemperature(oper, temp, minT, maxT)
+			if err != nil {
+				fmt.Printf("getting temperature: %s\n", err.Error())
 
 				return
 			}
 
-			result := getTemperature(operator, temperature, &minTemperature, &maxTemperature)
-			fmt.Println(result)
+			minT = newMin
+			maxT = newMax
+
+			fmt.Println(res)
 		}
 	}
 }
