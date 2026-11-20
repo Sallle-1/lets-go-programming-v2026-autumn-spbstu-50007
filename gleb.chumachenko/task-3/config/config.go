@@ -4,17 +4,13 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"os"
 	"strings"
 
 	"go.yaml.in/yaml/v3"
 )
 
-var (
-	errMultipleDocuments = errors.New("expected a single YAML document")
-	errEmptyPaths        = errors.New("input-file and output-file must be non-empty")
-)
+var errEmptyPaths = errors.New("input-file and output-file must be non-empty")
 
 type Config struct {
 	InputFile  string `yaml:"input-file"`
@@ -33,14 +29,6 @@ func Load(path string) (Config, error) {
 	decoder.KnownFields(true)
 
 	if err := decoder.Decode(&cfg); err != nil {
-		return Config{}, fmt.Errorf("decode config %q: %w", path, err)
-	}
-
-	var extra any
-
-	if err := decoder.Decode(&extra); err == nil {
-		return Config{}, errMultipleDocuments
-	} else if !errors.Is(err, io.EOF) {
 		return Config{}, fmt.Errorf("decode config %q: %w", path, err)
 	}
 
